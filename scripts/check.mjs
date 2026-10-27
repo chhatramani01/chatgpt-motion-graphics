@@ -1,0 +1,3 @@
+import{readFileSync,existsSync}from'node:fs';
+import assert from'node:assert/strict';
+const a=JSON.parse(readFileSync('assets/atlas/styles.json'));assert.equal(a.length,86);assert.equal(new Set(a.map(x=>x.id)).size,86);for(const s of a){assert(s.name&&s.category&&s.description&&s.motion&&s.explainerNote);for(const k of ['poster','clip','explainer'])assert(new URL(s[k]).protocol==='https:');assert(existsSync('styles/atlas/'+s.id+'/STYLE.md'))}assert(readFileSync('README.md','utf8').includes('All 86 styles'));console.log('PASS: 86 styles, unique IDs, poster/clip/explainer links, guides and README');

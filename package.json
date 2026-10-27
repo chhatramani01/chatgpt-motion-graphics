@@ -1,0 +1,19 @@
+{
+  "name": "chatgpt-motion-graphics",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ChatGPT-first motion studio with 86 reference style guides, Canvas rendering and synced SFX",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "render": "node scripts/render.mjs",
+    "demo": "node scripts/demo.mjs",
+    "test:motion": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "playwright": "^1.56.0"
+  }
+}
