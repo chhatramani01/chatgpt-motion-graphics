@@ -6,6 +6,28 @@
 
 > Independent community project. Not an official OpenAI product. Pasting the skill into ChatGPT provides a working creative workflow; executable MP4 generation requires rendering tools.
 
+## 🎬 Production contract (v5.1) — storyboard → review → draft → final
+
+Our authoritative [Motion Graphics agent skill](.agents/skills/motion-graphics/SKILL.md) now follows the user-supplied awesomeclaude.ai six-stage production contract: **ask once, storyboard before code, deterministic Canvas, contact-sheet review, half-resolution draft, then final MP4**. The engine exposes `window.renderAt(t)`, retaining `window.seek(t)` for compatibility, and uses a render-time virtual clock rather than sampling real time.
+
+**Run the entire pipeline locally:**
+```bash
+npm install
+npx playwright install chromium
+npm run check
+npm run test:motion
+node scripts/contact-sheet.mjs examples/kinetic-typography/scene.html output/contact.png 8
+node scripts/render.mjs examples/kinetic-typography/scene.html output/draft.mp4 8 30 640 360
+node claude-video-render.mjs examples/kinetic-typography/scene.html output/final-silent.mp4 8 60 1280 720
+node scripts/sfx.mjs output/effects.wav
+ffmpeg -y -i output/final-silent.mp4 -i output/effects.wav -c:v copy -c:a aac -b:a 192k -shortest output/final.mp4
+ffprobe -v error -show_entries stream=codec_name,codec_type -of json output/final.mp4
+```
+
+**Full prompting:** [copy-ready ChatGPT instructions](prompts/PASTE_IN_CHATGPT.md) · [86 full style director prompts](styles/atlas/whiteboard/PROMPT.md) · [46 film workflow agents](skills/README.md) · [quality report template](templates/production_report.md).
+
+A prompt alone does not install a native ChatGPT skill. Rendering requires Node.js, Chromium and FFmpeg. The repository does not contain a generative video model.
+
 ## 🔥 v5 — Full professional skills, not just a gallery
 
 **[One-click copy: complete ChatGPT master prompt](prompts/PASTE_IN_CHATGPT.md)** · **[Install & GitHub-link instructions](docs/INSTALL_CHATGPT.md)** · **[46 detailed video-format skills](skills/README.md)** · **[86 detailed visual director prompts](styles/atlas/whiteboard/PROMPT.md)**
