@@ -1,14 +1,15 @@
 {
   "name": "chatgpt-motion-graphics",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "private": true,
   "type": "module",
-  "description": "ChatGPT-first motion studio with 86 reference style guides, Canvas rendering and synced SFX",
+  "description": "ChatGPT-first motion studio: 86 complete style prompts, 46 original video agents, deterministic rendering with synchronized audio",
   "scripts": {
     "check": "node scripts/check.mjs",
     "render": "node scripts/render.mjs",
     "demo": "node scripts/demo.mjs",
-    "test:motion": "node --test tests/*.test.mjs"
+    "test:motion": "node --test tests/*.test.mjs",
+    "test:audio": "python3 -m unittest discover -s tests -p 'test_audio_tools.py'"
   },
   "engines": {
     "node": ">=22"

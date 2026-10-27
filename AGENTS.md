@@ -1,3 +1,3 @@
-# Motion Studio agent rules
+# Studio agent rules
 
-Read `.agents/skills/motion-graphics/SKILL.md` and `styles/atlas/<style-id>/STYLE.md` before designing. Every visual frame is deterministic from `window.seek(t)`. Storyboard first if requested. Never fake successful rendering or third-party media ownership. SFX cues share the shot timeline and are muxed for export.
+Read `skills/motion-video-studio/SKILL.md`, select one `skills/<format>/SKILL.md` and one `styles/atlas/<id>/PROMPT.md` prior to designing. Honor storyboard-first approval. Use real source word timestamps and transparent estimated-time flags; audio energy controls an *approximate* mouth, not guaranteed lip sync. Build pure `window.seek(t)` animated scenes and synced audio cues. Review actual pixels. Verify video and audio streams in deliverables. Do not misrepresent reference images as cleared media or an instruction prompt as a globally installed ChatGPT capability.

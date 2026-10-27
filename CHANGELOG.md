@@ -1,6 +1,10 @@
 # Changelog
 
-## v4.0.0
-- Publish ChatGPT-first instructions and motion studio tooling.
-- Integrate 86 Futurepedia-inspired visual style guides with linked posters and video references.
-- Add interactive style gallery, starter motion engine, procedural sound, and GitHub Actions checks.
+## 5.0.0 — Full skill release
+- 86 complete original director prompts incorporating exact source visual/animation/explainer descriptions.
+- 46 original ChatGPT video-format workflow agents, inspired by aansh-video.
+- Expanded master ChatGPT prompt, core skills, GitHub-aware install guide and upstream attribution.
+- Speech timing and approximate lip/mouth helper pipeline documented with test support.
+
+## 4.0.0 — 86 style library
+- Imported the 86 style metadata records and linked poster/video gallery.
