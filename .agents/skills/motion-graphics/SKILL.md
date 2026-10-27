@@ -29,5 +29,3 @@ Pasting `prompts/PASTE_IN_CHATGPT.md` activates instructions in that conversatio
 - `styles/atlas/<style>/PROMPT.md` — all 86 complete source-derived prompts
 - `tools/align.py`, `tools/mouth.py`, `tools/transcribe.sh` — optional local speech processing
 
-## Reference permissions
-Futurepedia sample videos/images remain externally hosted by their owner, not cleared for redistribution. The workflow architecture was inspired by Priyanshsharma21/aansh-video (MIT repository); do not copy its third-party assets or claim affiliation.
