@@ -11,4 +11,5 @@ jobs:
       - run: npm install
       - run: npm run check
       - run: npm run test:motion
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: python3 -m unittest discover -s tests -p 'test_audio_tools.py'
