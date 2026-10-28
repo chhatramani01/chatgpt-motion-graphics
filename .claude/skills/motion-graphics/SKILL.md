@@ -16,7 +16,7 @@ If essential information is missing, ask once for the goal or feeling, duration,
 - Visual styles: `../../../styles/atlas/<style-id>/PROMPT.md` (86 distinct visual grammars; choose one).
 - Format workflows: `../../../skills/<format>/SKILL.md` (46 optional specialist recipes).
 - Rendering/QA instructions: `../../../docs/WORKFLOW.md`.
-- Speech helpers: `../../../tools/` and `undefined`.
+- Speech helpers: `../../../tools/` and `../../../scripts/`.
 Use *one* primary style plus at most one format workflow. Do not load all 86 prompts into context. These are creative specifications, **not** 86 working animation engines. Refer to the repository root for paths if this skill was copied independently, and request the relevant companion files when absent.
 
 ## 3. Storyboard before code
