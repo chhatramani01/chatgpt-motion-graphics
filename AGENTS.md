@@ -1,3 +1,7 @@
-# Studio agent rules
+# Agent entry point
 
-Read `skills/motion-video-studio/SKILL.md`, select one `skills/<format>/SKILL.md` and one `styles/atlas/<id>/PROMPT.md` prior to designing. Honor storyboard-first approval. Use real source word timestamps and transparent estimated-time flags; audio energy controls an *approximate* mouth, not guaranteed lip sync. Build pure `window.seek(t)` animated scenes and synced audio cues. Review actual pixels. Verify video and audio streams in deliverables. Do not misrepresent reference images as cleared media or an instruction prompt as a globally installed ChatGPT capability.
+For video, motion graphics and animation, use the **one** core skill at `.agents/skills/motion-graphics/SKILL.md`. Claude Code sees the equivalent `.claude/skills/motion-graphics/SKILL.md`.
+
+Pick **one** detailed visual style from `styles/atlas/<id>/PROMPT.md` and optionally one specialized video format from `skills/<id>/SKILL.md`. These are reference resources; they are not automatically discovered as 132 standalone agent skills. Do not read the entire catalog at once.
+
+Always storyboard first, render `window.renderAt(t)` deterministically, inspect actual contact-sheet images, mux audio with FFmpeg and report what was and was not verified. Follow `docs/WORKFLOW.md` for commands.

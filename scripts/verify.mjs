@@ -1,0 +1,11 @@
+import{spawnSync}from'node:child_process';
+const [file='output/demo.mp4',w,h]=process.argv.slice(2);
+const r=spawnSync('ffprobe',['-v','error','-show_streams','-show_format','-of','json',file],{encoding:'utf8'});
+if(r.status!==0)throw Error('ffprobe failed: '+r.stderr);
+const j=JSON.parse(r.stdout);const v=j.streams.find(x=>x.codec_type==='video'),a=j.streams.find(x=>x.codec_type==='audio');
+if(!v||v.codec_name!=='h264')throw Error('Missing H.264 video');
+if(!a||a.codec_name!=='aac')throw Error('Missing AAC audio');
+if(w&&v.width!==+w)throw Error('Wrong width '+v.width);
+if(h&&v.height!==+h)throw Error('Wrong height '+v.height);
+if(!Number(j.format.duration))throw Error('Missing duration');
+console.log('PASS media',file,v.width+'x'+v.height,'duration',j.format.duration);

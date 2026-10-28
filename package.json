@@ -1,20 +1,22 @@
 {
   "name": "chatgpt-motion-graphics",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "private": true,
   "type": "module",
-  "description": "ChatGPT-first motion studio: 86 complete style prompts, 46 original video agents, deterministic rendering with synchronized audio",
-  "scripts": {
-    "check": "node scripts/check.mjs",
-    "render": "node scripts/render.mjs",
-    "demo": "node scripts/demo.mjs",
-    "test:motion": "node --test tests/*.test.mjs",
-    "test:audio": "python3 -m unittest discover -s tests -p 'test_audio_tools.py'"
-  },
+  "description": "A cross-agent skill for deterministic motion graphics: 86 detailed style prompts, 46 video recipes and a tested MP4 renderer",
   "engines": {
     "node": ">=22"
   },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/motion.test.mjs && python3 -m unittest discover -s tests -p test_audio_tools.py",
+    "test:motion": "node --test tests/motion.test.mjs",
+    "test:audio": "python3 -m unittest discover -s tests -p test_audio_tools.py",
+    "sheet": "node scripts/contact-sheet.mjs examples/demo/scene.html output/contact.png 8",
+    "demo": "node scripts/demo.mjs",
+    "render": "node scripts/render.mjs"
+  },
   "dependencies": {
-    "playwright": "^1.56.0"
+    "playwright": "1.56.0"
   }
 }

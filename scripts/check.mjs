@@ -1,10 +1,31 @@
-import{existsSync,readFileSync,readdirSync}from'node:fs';import assert from'node:assert/strict';
-const a=JSON.parse(readFileSync('assets/atlas/styles.json','utf8'));
-assert.equal(a.length,86);assert.equal(new Set(a.map(s=>s.id)).size,86);
-for(const s of a){for(const p of ['STYLE.md','PROMPT.md'])assert(existsSync('styles/atlas/'+s.id+'/'+p));for(const k of ['description','motion','explainerNote','poster','clip','explainer'])assert(s[k]);}
-const skills=readdirSync('skills',{withFileTypes:true}).filter(d=>d.isDirectory());assert.equal(skills.length,47);for(const d of skills)assert(existsSync('skills/'+d.name+'/SKILL.md'));
-for(const p of ['prompts/PASTE_IN_CHATGPT.md','docs/INSTALL_CHATGPT.md','tools/align.py','tools/mouth.py','tools/transcribe.sh'])assert(existsSync(p));
-const readme=readFileSync('README.md','utf8');assert(readme.includes(a[85].poster));assert(readme.includes('46 detailed video-format skills'));for(const p of ['scripts/contact-sheet.mjs','claude-video-render.mjs','templates/production_report.md'])assert(existsSync(p));
-for(const p of ['.agents/skills/motion-graphics/SKILL.md','.claude/skills/motion-graphics/SKILL.md','skills/motion-video-studio/SKILL.md']){const s=readFileSync(p,'utf8');assert(s.includes('window.renderAt(t)'));assert(s.includes('Storyboards')||s.includes('Storyboard'));assert(s.includes('contact sheet'));assert(s.includes('awesomeclaude.ai'));}
-console.log('Validated authoritative renderAt(t) storyboard/contact-sheet contract.');
-console.log('Validated 86 full visual prompts + 46 workflow agents + master instructions + tools.');
+import assert from'node:assert/strict';
+import{readFileSync,existsSync,readdirSync}from'node:fs';
+import{join}from'node:path';
+const root='.';
+const data=JSON.parse(readFileSync('assets/atlas/styles.json','utf8'));
+assert.equal(data.length,86,'86 visual styles expected');
+assert.equal(new Set(data.map(s=>s.id)).size,86,'duplicate style IDs');
+for(const s of data){
+ assert(/^[a-z0-9-]+$/.test(s.id),'bad ID');
+ for(const k of ['name','category','description','motion','explainerNote','clip','poster','explainer'])assert(s[k],s.id+' missing '+k);
+ for(const k of ['poster','clip','explainer'])assert.equal(new URL(s[k]).protocol,'https:');
+ const p='styles/atlas/'+s.id+'/PROMPT.md';
+ assert(existsSync(p),'missing detailed prompt '+p);
+ const prompt=readFileSync(p,'utf8');
+ assert(prompt.length>1500,s.id+' prompt too short');
+ assert(prompt.includes(s.description.slice(0,50)),s.id+' prompt missing original description');
+ assert(prompt.includes(s.motion.slice(0,45)),s.id+' prompt missing original motion text');
+ assert(prompt.includes(s.explainerNote.slice(0,45)),s.id+' prompt missing detailed explainer text');
+ assert(!existsSync('styles/atlas/'+s.id+'/STYLE.md'),'duplicated short style file');
+}
+const recipes=readdirSync('skills',{withFileTypes:true}).filter(x=>x.isDirectory());
+assert.equal(recipes.length,46,'46 optional video recipes expected');
+for(const r of recipes)assert(existsSync('skills/'+r.name+'/SKILL.md'),r.name+' recipe missing');
+const main=readFileSync('.agents/skills/motion-graphics/SKILL.md','utf8');
+assert.equal(main,readFileSync('.claude/skills/motion-graphics/SKILL.md','utf8'),'agent entrypoints drifted');
+assert(/^---\nname: motion-graphics\ndescription: .+\n---/m.test(main),'invalid core SKILL metadata');
+assert(existsSync('examples/demo/scene.html'),'demo source missing');
+assert(!existsSync('assets/atlas/data.js'),'duplicated dataset present');
+for(const p of ['docs/INSTALL.md','docs/WORKFLOW.md','prompts/PASTE_IN_CHATGPT.md','scripts/render.mjs','scripts/contact-sheet.mjs','scripts/verify.mjs'])assert(existsSync(p),'missing '+p);
+assert(readFileSync('README.md','utf8').includes(data.at(-1).poster),'README must reference all style images');
+console.log('PASS: 86 complete style prompts, 46 recipes, 1 mirrored core skill, layout and metadata');

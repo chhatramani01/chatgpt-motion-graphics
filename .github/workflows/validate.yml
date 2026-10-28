@@ -1,16 +1,44 @@
-name: Validate motion studio
-on: [push, pull_request]
+name: Validate and render demo
+on:
+  push:
+  pull_request:
 jobs:
-  validate:
+  studio:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install
-      - run: npm run check
-      - run: npm run test:motion
-      - run: node --check scripts/render.mjs && node --check scripts/contact-sheet.mjs && node --check claude-video-render.mjs
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: python3 -m unittest discover -s tests -p 'test_audio_tools.py'
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Validate repo and tests
+        run: |
+          npm run check
+          npm test
+          node --check scripts/render.mjs
+          node --check scripts/contact-sheet.mjs
+          node --check scripts/demo.mjs
+      - name: Real visual and media smoke tests
+        run: |
+          mkdir -p output
+          node scripts/contact-sheet.mjs examples/demo/scene.html output/contact.png 2 1 320 180
+          node scripts/render.mjs examples/demo/scene.html output/wide.mp4 1 8 320 180
+          node scripts/render.mjs examples/demo/scene.html output/vertical.mp4 1 8 180 320
+          ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 output/vertical.mp4 | grep -q '180,320'
+          node scripts/sfx.mjs output/effects.wav
+          ffmpeg -hide_banner -loglevel error -y -i output/wide.mp4 -i output/effects.wav -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -shortest output/smoke.mp4
+          node scripts/verify.mjs output/smoke.mp4 320 180
+          test -s output/contact.png
+      - name: Upload playable smoke test
+        uses: actions/upload-artifact@v4
+        with:
+          name: motion-studio-v6-smoke
+          path: |
+            output/smoke.mp4
+            output/vertical.mp4
+            output/contact.png

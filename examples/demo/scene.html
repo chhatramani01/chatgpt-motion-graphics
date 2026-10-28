@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Motion Studio demo</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;min-height:100%;display:grid;place-items:center;background:#11151b}canvas{max-width:96vw;max-height:96vh;object-fit:contain}</style></head><body><canvas width="1280" height="720" aria-label="Motion Studio animation preview"></canvas><script>
+(() => {
+const c=document.querySelector('canvas'),g=c.getContext('2d');
+window.DURATION=8;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>1-(1-clamp(x))**3;
+const shots=[
+{t:0,label:'MAKE',sub:'A MOVING STORY',accent:'#FA784F'},
+{t:2,label:'DESIGN',sub:'WITH INTENTION',accent:'#F6D06B'},
+{t:4,label:'RENDER',sub:'EVERY FRAME',accent:'#76C4E8'},
+{t:6,label:'SHIP IT.',sub:'CODE  +  SOUND',accent:'#A1E1AB'}];
+function draw(t){
+const W=c.width,H=c.height,vertical=H>W*1.1;
+const pad=W*.08,usable=W-2*pad;
+g.setTransform(1,0,0,1,0,0);g.fillStyle='#11151b';g.fillRect(0,0,W,H);
+const idx=Math.min(3,Math.floor(clamp(t,0,7.999)/2)),sh=shots[idx],local=t-idx*2;
+const a=ease(local/.46),bar=ease((local-.16)/.7),primary=vertical?Math.min(W*.135,H*.074):Math.min(W*.135,H*.19);
+g.fillStyle='#28303a';g.fillRect(pad,H*.20,usable,Math.max(2,H*.004));
+g.fillStyle=sh.accent;g.fillRect(pad,H*.20,usable*bar,Math.max(3,H*.009));
+const heroY=vertical?H*.44:H*.52;
+g.save();g.translate(pad+(1-a)*W*.34,heroY);g.font='800 '+Math.round(primary)+'px system-ui,sans-serif';
+g.textBaseline='middle';g.fillStyle='#F8F6F0';g.fillText(sh.label,0,0,usable);g.restore();
+g.font='600 '+Math.round(Math.min(W*.044,H*.045))+'px system-ui,sans-serif';
+g.textBaseline='middle';g.fillStyle=sh.accent;g.fillText(sh.sub,pad,vertical?H*.54:H*.66,usable);
+g.fillStyle='#9AA5B3';g.font='500 '+Math.round(Math.min(W*.023,H*.03))+'px monospace';
+g.fillText('MOTION STUDIO   /   86 VISUAL STYLES',pad,H*.84,usable);
+g.fillStyle='#495360';g.fillRect(pad,H*.90,usable,Math.max(2,H*.002));
+g.fillStyle=sh.accent;g.fillRect(pad,H*.90,usable*clamp(t/8),Math.max(3,H*.005));
+}
+window.renderAt=draw;window.seek=draw;draw(0);
+if(!window.__MOTION_RENDER_MODE__){
+const start=performance.now();
+const tick=()=>{draw(((performance.now()-start)/1000)%8);requestAnimationFrame(tick)};
+requestAnimationFrame(tick);
+}
+})();
+</script></body></html>

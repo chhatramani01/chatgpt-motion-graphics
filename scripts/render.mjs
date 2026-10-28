@@ -1,57 +1,46 @@
-// Deterministic Canvas/SVG renderer, fixed-time frame stepping.
-// Usage: node scripts/render.mjs scene.html out.mp4 duration fps width height
-import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+// Offline deterministic frame renderer: node scripts/render.mjs scene.html out.mp4 seconds fps width height
+import {chromium} from 'playwright';
+import {spawn} from 'node:child_process';
+import {mkdirSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 
-const [scene='examples/kinetic-typography/scene.html', output='output/silent.mp4',
-  duration='8', fps='30', width='1280', height='720'] = process.argv.slice(2);
-const dur=Number(duration), rate=Number(fps), W=Number(width), H=Number(height);
-if (![dur,rate,W,H].every(Number.isFinite) || dur<=0 || rate<=0 || W<=0 || H<=0)
-  throw new Error('duration/fps/width/height must all be positive finite numbers');
-mkdirSync(dirname(resolve(output)),{recursive:true});
-
-const browser=await chromium.launch({headless:true});
+const [source='examples/demo/scene.html',destination='output/silent.mp4',seconds='8',fps='30',width='1280',height='720']=process.argv.slice(2);
+const D=Number(seconds),FPS=Number(fps),W=Number(width),H=Number(height);
+if(!Number.isFinite(D)||D<=0||!Number.isInteger(FPS)||FPS<1||!Number.isInteger(W)||!Number.isInteger(H)||W<2||H<2||W%2||H%2)
+ throw Error('Expected duration >0; integer FPS; positive even width/height');
+mkdirSync(dirname(resolve(destination)),{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||undefined});
 try {
-  const context=await browser.newContext({viewport:{width:Math.trunc(W),height:Math.trunc(H)},
-    deviceScaleFactor:1});
-  // Inject before page JS: prevent realtime RAF and expose a fixed, controlled time.
-  await context.addInitScript(() => {
-    let tick=0;
-    Object.defineProperty(window,'__MOTION_RENDER_MODE__',{value:true});
-    Object.defineProperty(window,'__MOTION_CLOCK__',{value:{set:t=>{tick=t*1000},get:()=>tick}});
-    try { performance.now=()=>tick; } catch {}
-    try { Date.now=()=>Math.round(tick); } catch {}
-    window.requestAnimationFrame=()=>0;
-    window.cancelAnimationFrame=()=>{};
-  });
-  const page=await context.newPage();
-  await page.goto(pathToFileURL(resolve(scene)).href,{waitUntil:'load'});
-  await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(
-    [...document.images].map(im=>im.decode?.().catch(()=>{})??Promise.resolve()));});
-  const c=page.locator('canvas').first();
-  if (!(await c.count())) throw new Error('scene.html needs a canvas element');
-  const ff=spawn('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','image2pipe',
-    '-framerate',String(rate),'-i','-','-c:v','libx264','-crf','16','-pix_fmt','yuv420p',
-    '-movflags','+faststart',resolve(output)],{stdio:['pipe','inherit','inherit']});
-  const done=new Promise((resolve,reject)=>{
-    ff.once('error',reject);ff.once('close',code=>code===0?resolve():reject(new Error('FFmpeg exited '+code)));
-  });
-  for(let i=0,total=Math.ceil(dur*rate);i<total;i++){
-    const t=i/rate;
-    await page.evaluate(t=>{
-      window.__MOTION_CLOCK__?.set(t);
-      const fn=window.renderAt??window.seek;
-      if(typeof fn!=='function')throw new Error('scene must expose window.renderAt(t) or window.seek(t)');
-      fn(t);
-    },t);
-    const png=await c.screenshot({type:'png',animations:'disabled'});
-    if(!ff.stdin.write(png)) await new Promise(res=>ff.stdin.once('drain',res));
-    if(i%rate===0)process.stdout.write('render '+Math.floor(t)+' / '+dur+' s\n');
-  }
-  ff.stdin.end();
-  await done;
-  console.log('Rendered silent video:',resolve(output));
-} finally { await browser.close(); }
+ const cx=await browser.newContext({viewport:{width:W,height:H},deviceScaleFactor:1});
+ await cx.addInitScript(()=>{
+   Object.defineProperty(window,'__MOTION_RENDER_MODE__',{value:true});
+   // The agent draws via renderAt(t); never use wall-clock or RAF during export.
+   window.requestAnimationFrame=()=>0;
+   window.cancelAnimationFrame=()=>{};
+ });
+ const page=await cx.newPage();
+ await page.goto(pathToFileURL(resolve(source)).href,{waitUntil:'load'});
+ await page.evaluate(async({W,H})=>{
+   const canvas=document.querySelector('canvas');
+   if(!canvas)throw Error('scene.html must contain a canvas');
+   canvas.width=W; canvas.height=H;
+   canvas.style.width=W+'px'; canvas.style.height=H+'px'; canvas.style.maxWidth='none'; canvas.style.maxHeight='none';
+   await document.fonts.ready;
+   await Promise.all([...document.images].map(img=>img.decode?.().catch(()=>{})||Promise.resolve()));
+ },{W,H});
+ const ff=spawn('ffmpeg',['-hide_banner','-loglevel','error','-y','-f','image2pipe','-framerate',String(FPS),'-i','-','-an','-c:v','libx264','-crf','19','-pix_fmt','yuv420p','-movflags','+faststart',resolve(destination)],{stdio:['pipe','inherit','inherit']});
+ const completion=new Promise((yes,no)=>{ff.on('error',no);ff.stdin.on('error',no);ff.on('close',code=>code===0?yes():no(Error('ffmpeg exited '+code)))});
+ const count=Math.ceil(D*FPS);
+ for(let f=0;f<count;f++){
+   await page.evaluate(t=>{
+     const draw=window.renderAt||window.seek;
+     if(typeof draw!=='function')throw Error('scene must expose window.renderAt(t)');
+     draw(t);
+   },f/FPS);
+   const png=await page.locator('canvas').first().screenshot({type:'png',animations:'disabled'});
+   if(!ff.stdin.write(png))await new Promise(done=>ff.stdin.once('drain',done));
+ }
+ ff.stdin.end();await completion;
+ console.log('OK rendered',destination,'frames',count,'resolution',W+'x'+H);
+} finally {await browser.close()}
